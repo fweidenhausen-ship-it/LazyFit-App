@@ -15,10 +15,44 @@ const CHALK_DIM = "#9C9686";
 const HAZARD = "#E8B92E";
 const RUST = "#C1432A";
 const STEEL = "#514E44";
+const SPUD = "#C89B6B";
+const SPUD_DARK = "#9C7148";
 
 const DISPLAY_FONT = "'Oswald', sans-serif";
 const BODY_FONT = "'Inter', sans-serif";
 const MONO_FONT = "'JetBrains Mono', monospace";
+
+/* ---------------------------------------------------------
+   MASCOT — Coach Potato: a spud with arms, legs, a headband,
+   sneakers, and a wink. Doubles as the app icon artwork.
+--------------------------------------------------------- */
+function PotatoMascot({ size = 48 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64">
+      {/* legs, mid-stride */}
+      <line x1="26" y1="52" x2="18" y2="62" stroke={SPUD_DARK} strokeWidth="5" strokeLinecap="round" />
+      <line x1="36" y1="52" x2="46" y2="60" stroke={SPUD_DARK} strokeWidth="5" strokeLinecap="round" />
+      <ellipse cx="15" cy="63" rx="6" ry="3" fill={HAZARD} transform="rotate(8 15 63)" />
+      <ellipse cx="48" cy="61" rx="6" ry="3" fill={HAZARD} transform="rotate(-20 48 61)" />
+      {/* arms — one flexing up, one out to the side */}
+      <path d="M20 32 Q8 28 10 18" stroke={SPUD_DARK} strokeWidth="5" strokeLinecap="round" fill="none" />
+      <circle cx="10" cy="17" r="4" fill={SPUD} />
+      <line x1="44" y1="34" x2="55" y2="40" stroke={SPUD_DARK} strokeWidth="5" strokeLinecap="round" />
+      <circle cx="56" cy="41" r="4" fill={SPUD} />
+      {/* potato body */}
+      <ellipse cx="32" cy="34" rx="17" ry="21" fill={SPUD} stroke={SPUD_DARK} strokeWidth="1.5" />
+      <ellipse cx="22" cy="44" rx="2" ry="1.3" fill={SPUD_DARK} opacity="0.6" />
+      <ellipse cx="40" cy="40" rx="1.6" ry="1" fill={SPUD_DARK} opacity="0.6" />
+      <ellipse cx="30" cy="48" rx="1.4" ry="1" fill={SPUD_DARK} opacity="0.5" />
+      {/* headband */}
+      <path d="M17 24 Q32 16 47 24 L47 20 Q32 12 17 20 Z" fill={HAZARD} />
+      {/* winking face */}
+      <circle cx="26" cy="30" r="1.8" fill={INK} />
+      <path d="M36 30 Q38.5 28 41 30" stroke={INK} strokeWidth="1.6" fill="none" strokeLinecap="round" />
+      <path d="M25 37 Q32 41 39 36" stroke={INK} strokeWidth="1.8" fill="none" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 /* ---------------------------------------------------------
    STATIC DATA
@@ -100,6 +134,87 @@ const EXERCISE_DB = [
   { name: "Katze-Kuh", category: "mobility", equipment: ["bodyweight", "matte"], mode: "timed", sets: 2, durationSeconds: 30, restSeconds: 10, cue: "Wirbelsäule abwechselnd runden und strecken." },
   { name: "Band Schulteröffner", category: "mobility", equipment: ["band"], mode: "timed", sets: 2, durationSeconds: 30, restSeconds: 15, cue: "Band vor dem Körper über den Kopf führen." },
 ];
+
+// English search terms for matching against the free-exercise-db photo library below.
+const EXERCISE_EN_NAMES = {
+  "Liegestütze": "Pushups",
+  "Diamant-Liegestütze": "Diamond Push Up",
+  "Kurzhantel Bankdrücken": "Dumbbell Bench Press",
+  "Langhantel Bankdrücken": "Barbell Bench Press",
+  "Schulterdrücken Kurzhantel": "Dumbbell Shoulder Press",
+  "Kabelzug Brustpresse": "Cable Chest Press",
+  "Dips": "Dips",
+  "Pike Push-ups": "Pike Push Up",
+  "Klimmzüge": "Pull-ups",
+  "Australian Pull-ups": "Inverted Row",
+  "Band Rudern": "Band Row",
+  "Kabelzug Rudern": "Seated Cable Row",
+  "Langhantel Rudern": "Barbell Row",
+  "Bizeps Curls": "Dumbbell Bicep Curl",
+  "Kettlebell Rudern": "Kettlebell Row",
+  "Kniebeugen": "Bodyweight Squat",
+  "Langhantel Kniebeugen": "Barbell Squat",
+  "Kettlebell Goblet Squat": "Goblet Squat",
+  "Ausfallschritte": "Lunge",
+  "Kurzhantel Ausfallschritte": "Dumbbell Lunge",
+  "Box Step-ups": "Step-up",
+  "Wadenheben": "Calf Raise",
+  "Beinpresse Maschine": "Leg Press",
+  "Plank": "Plank",
+  "Seitlicher Unterarmstütz": "Side Plank",
+  "Russian Twists": "Russian Twist",
+  "Crunches": "Crunches",
+  "Beinheben hängend": "Hanging Leg Raise",
+  "Mountain Climbers": "Mountain Climbers",
+  "Kettlebell Swings": "Kettlebell Swing",
+  "Seilspringen": "Jump Rope",
+  "Burpees": "Burpee",
+  "Jumping Jacks": "Jumping Jacks",
+  "Box Jumps": "Box Jump",
+  "Hochknie-Lauf": "High Knees",
+  "Dehnung Hüftbeuger": "Hip Flexor Stretch",
+  "Schulterkreisen": "Shoulder Circles",
+  "Katze-Kuh": "Cat Cow",
+  "Band Schulteröffner": "Band Shoulder Stretch",
+};
+
+// Public-domain exercise photo library (Unlicense — free for any use, incl. commercial).
+// https://github.com/yuhonas/free-exercise-db
+const EXDB_URL = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json";
+const EXDB_IMG_PREFIX = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/";
+const EXDB_CACHE_KEY = "lazyfit:exdb_photo_index_v1";
+
+async function loadExercisePhotoIndex() {
+  try {
+    const cached = window.localStorage.getItem(EXDB_CACHE_KEY);
+    if (cached) return JSON.parse(cached);
+  } catch { /* ignore, fall through to network */ }
+  try {
+    const res = await fetch(EXDB_URL);
+    if (!res.ok) throw new Error("bad response");
+    const data = await res.json();
+    const index = {};
+    data.forEach(ex => {
+      if (ex.name && ex.images && ex.images.length) {
+        index[ex.name.toLowerCase()] = ex.images.map(p => EXDB_IMG_PREFIX + p);
+      }
+    });
+    try { window.localStorage.setItem(EXDB_CACHE_KEY, JSON.stringify(index)); } catch { /* ok, just skip caching */ }
+    return index;
+  } catch (e) {
+    console.warn("Konnte Übungsfotos nicht laden, Skizzen werden als Rückfalloption genutzt.", e);
+    return null;
+  }
+}
+
+function lookupExercisePhotos(index, germanName) {
+  if (!index) return null;
+  const enName = EXERCISE_EN_NAMES[germanName] || germanName;
+  const key = enName.toLowerCase();
+  if (index[key]) return index[key];
+  const fuzzyKey = Object.keys(index).find(k => k.includes(key) || key.includes(k));
+  return fuzzyKey ? index[fuzzyKey] : null;
+}
 
 const CAT_MUSCLES = {
   push: "Brust, Trizeps, Schultern",
@@ -233,27 +348,51 @@ function CatIcon({ cat, size = 64, playing = false }) {
   );
 }
 
-function ExerciseSketch({ cat, name }) {
+function ExerciseSketch({ cat, name, photoIndex }) {
   const [playing, setPlaying] = useState(false);
+  const [photoFailed, setPhotoFailed] = useState(false);
   const iconKey = resolveIconKey(name, cat);
+  const photos = photoFailed ? null : lookupExercisePhotos(photoIndex, name);
+  const hasPhoto = photos && photos.length > 0;
+  const crossfade = photos && photos.length > 1;
+
+  const styleFor = (isA) => ({
+    position: "absolute", inset: 0, width: "100%", height: "100%",
+    objectFit: "cover", borderRadius: 22,
+    animationName: isA ? "poseCrossA" : "poseCrossB",
+    animationDuration: "1.6s",
+    animationTimingFunction: "ease-in-out",
+    animationIterationCount: "infinite",
+    animationPlayState: playing ? "running" : "paused",
+  });
+
   return (
     <div className="flex flex-col items-center mb-2">
       <div
-        className="relative flex items-center justify-center"
+        className="relative flex items-center justify-center overflow-hidden"
         style={{ width: 112, height: 112, borderRadius: 22, background: `linear-gradient(160deg, ${PANEL2}, ${PANEL})`, boxShadow: `inset 0 0 0 1.5px ${STEEL}, 0 6px 18px rgba(0,0,0,0.35)` }}
       >
-        <CatIcon cat={iconKey} size={78} playing={playing} />
-        <button
-          onClick={() => setPlaying(p => !p)}
-          aria-label={playing ? "Skizze pausieren" : "Skizze abspielen"}
-          className="absolute transition-transform active:scale-90"
-          style={{ bottom: 6, right: 6, width: 28, height: 28, borderRadius: "50%", background: HAZARD, color: INK, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 6px rgba(0,0,0,0.4)" }}
-        >
-          {playing ? <Pause size={13} /> : <Play size={13} style={{ marginLeft: 1 }} />}
-        </button>
+        {hasPhoto ? (
+          <>
+            <img src={photos[0]} alt={name} style={crossfade ? styleFor(true) : { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", borderRadius: 22 }} onError={() => setPhotoFailed(true)} />
+            {crossfade && <img src={photos[1]} alt="" style={styleFor(false)} onError={() => setPhotoFailed(true)} />}
+          </>
+        ) : (
+          <CatIcon cat={iconKey} size={78} playing={playing} />
+        )}
+        {(!hasPhoto || crossfade) && (
+          <button
+            onClick={() => setPlaying(p => !p)}
+            aria-label={playing ? "Pausieren" : "Bewegung abspielen"}
+            className="absolute transition-transform active:scale-90"
+            style={{ bottom: 6, right: 6, width: 28, height: 28, borderRadius: "50%", background: HAZARD, color: INK, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 6px rgba(0,0,0,0.4)" }}
+          >
+            {playing ? <Pause size={13} /> : <Play size={13} style={{ marginLeft: 1 }} />}
+          </button>
+        )}
       </div>
       <span style={{ fontFamily: BODY_FONT, fontSize: 10, color: CHALK_DIM, marginTop: 8, textTransform: "uppercase", letterSpacing: 0.8 }}>
-        {playing ? "Skizze läuft…" : "Bewegungsskizze ansehen"}
+        {hasPhoto ? (crossfade ? (playing ? "Bewegung läuft…" : "Bewegung ansehen") : "Foto") : (playing ? "Skizze läuft…" : "Bewegungsskizze ansehen")}
       </span>
       <span style={{ fontFamily: BODY_FONT, fontSize: 11, color: HAZARD, marginTop: 3 }}>
         {CAT_MUSCLES[iconKey] || CAT_MUSCLES[cat]}
@@ -421,7 +560,7 @@ async function generateWorkout({ profile, equipment, duration, focus, surprise, 
   if (repFactor < 0.95) intro = "Etwas leichter dosiert als sonst, nach deinem letzten Feedback.";
   else if (repFactor > 1.05) intro = "Etwas mehr Wumms drin — du meintest, es durfte ruhig fordernder sein.";
 
-  return { ok: true, plan: { title: "Dein Workout", intro, exercises } };
+  return { ok: true, plan: { title: "Dein Workout", intro, exercises, totalFactor } };
 }
 
 /* ---------------------------------------------------------
@@ -794,6 +933,46 @@ function WorkoutSetupTab({ equipment, duration, setDuration, focus, setFocus, su
 }
 
 /* ---------------------------------------------------------
+   WORKOUT PREVIEW — shown after generation, before the workout starts
+--------------------------------------------------------- */
+function WorkoutPreview({ plan, onSwap, onStart, onBack }) {
+  return (
+    <div className="px-5 pt-6 pb-28">
+      <SectionLabel>Das kommt jetzt</SectionLabel>
+      <p style={{ fontFamily: BODY_FONT, fontSize: 13, color: CHALK_DIM, marginBottom: 18 }}>{plan.intro}</p>
+
+      <div className="flex flex-col gap-2 mb-6">
+        {plan.exercises.map((ex, i) => (
+          <div key={i} className="p-3 flex items-center justify-between" style={{ borderRadius: 12, border: `1.5px solid ${STEEL}`, background: PANEL2 }}>
+            <div>
+              <div style={{ fontFamily: BODY_FONT, fontSize: 14, color: CHALK }}>{ex.name}</div>
+              <div style={{ fontFamily: MONO_FONT, fontSize: 12, color: CHALK_DIM }}>
+                {ex.mode === "timed" ? `${ex.sets}× ${ex.durationSeconds}s` : `${ex.sets}× ${ex.reps}`} · {CAT_MUSCLES[resolveIconKey(ex.name, ex.category)] || CAT_MUSCLES[ex.category]}
+              </div>
+            </div>
+            <button
+              onClick={() => onSwap(i)}
+              aria-label="Übung tauschen"
+              className="flex items-center gap-1 px-3 py-2 transition-all active:scale-95 flex-shrink-0"
+              style={{ borderRadius: 999, border: `1.5px solid ${STEEL}`, color: CHALK_DIM, fontFamily: BODY_FONT, fontSize: 12 }}
+            >
+              <RotateCcw size={13} /> Tauschen
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <PrimaryButton onClick={onStart}>
+        <span className="flex items-center gap-2"><Play size={16} /> Training starten</span>
+      </PrimaryButton>
+      <button onClick={onBack} className="w-full mt-3 py-2 text-center" style={{ fontFamily: BODY_FONT, fontSize: 13, color: CHALK_DIM }}>
+        Zurück zur Auswahl
+      </button>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------
    ACTIVE WORKOUT
 --------------------------------------------------------- */
 function RestTimer({ seconds, onDone, onSkip }) {
@@ -884,7 +1063,42 @@ function SkipModal({ exerciseName, onCancel, onConfirm }) {
   );
 }
 
-function ActiveWorkout({ plan, onFinish, onExit, onSkip }) {
+// Keeps the phone screen from dimming/locking while a workout is running.
+// Best-effort: silently does nothing on browsers that don't support it (e.g. older iOS).
+function useWakeLock(active) {
+  const lockRef = useRef(null);
+
+  useEffect(() => {
+    if (!active || !("wakeLock" in navigator)) return;
+
+    let cancelled = false;
+    const acquire = async () => {
+      try {
+        const lock = await navigator.wakeLock.request("screen");
+        if (cancelled) { lock.release(); return; }
+        lockRef.current = lock;
+      } catch (e) {
+        console.warn("Wake Lock nicht verfügbar", e);
+      }
+    };
+    acquire();
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && !lockRef.current) acquire();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisible);
+      lockRef.current?.release();
+      lockRef.current = null;
+    };
+  }, [active]);
+}
+
+function ActiveWorkout({ plan, onFinish, onExit, onSkip, photoIndex }) {
+  useWakeLock(true);
   const [exIdx, setExIdx] = useState(0);
   const [setNum, setSetNum] = useState(1);
   const [phase, setPhase] = useState("exercise"); // exercise | rest
@@ -934,7 +1148,7 @@ function ActiveWorkout({ plan, onFinish, onExit, onSkip }) {
 
       {phase === "exercise" && (
         <>
-          <ExerciseSketch cat={ex.category} name={ex.name} />
+          <ExerciseSketch cat={ex.category} name={ex.name} photoIndex={photoIndex} />
           <h2 className="text-center mb-1" style={{ fontFamily: DISPLAY_FONT, fontSize: 26, color: CHALK, textTransform: "uppercase" }}>{ex.name}</h2>
           <p className="text-center mb-4" style={{ fontFamily: BODY_FONT, fontSize: 13, color: HAZARD }}>{ex.equipment}</p>
           <p className="text-center mb-2 px-4" style={{ fontFamily: BODY_FONT, fontSize: 14, color: CHALK_DIM, fontStyle: "italic" }}>{ex.cue}</p>
@@ -1026,17 +1240,31 @@ function Cooldown({ plan, onSubmit }) {
 /* ---------------------------------------------------------
    THANK YOU / SIGN-OFF
 --------------------------------------------------------- */
-function BottleFigure({ size = 72 }) {
+function PotatoWithBottle({ size = 88 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64">
-      <circle cx="26" cy="14" r="6" fill={CHALK} />
-      <line x1="26" y1="20" x2="26" y2="38" stroke={CHALK} strokeWidth="7" strokeLinecap="round" />
-      <line x1="26" y1="24" x2="14" y2="34" stroke={CHALK} strokeWidth="5" strokeLinecap="round" />
-      <line x1="26" y1="24" x2="38" y2="18" stroke={CHALK} strokeWidth="5" strokeLinecap="round" />
-      <line x1="26" y1="38" x2="18" y2="54" stroke={CHALK} strokeWidth="6" strokeLinecap="round" />
-      <line x1="26" y1="38" x2="32" y2="54" stroke={CHALK} strokeWidth="6" strokeLinecap="round" />
-      <rect x="36" y="8" width="8" height="14" rx="2" fill="none" stroke={HAZARD} strokeWidth="2" />
-      <rect x="38" y="5" width="4" height="4" rx="1" fill={HAZARD} />
+      {/* legs */}
+      <line x1="26" y1="52" x2="18" y2="62" stroke={SPUD_DARK} strokeWidth="5" strokeLinecap="round" />
+      <line x1="36" y1="52" x2="46" y2="60" stroke={SPUD_DARK} strokeWidth="5" strokeLinecap="round" />
+      <ellipse cx="15" cy="63" rx="6" ry="3" fill={HAZARD} transform="rotate(8 15 63)" />
+      <ellipse cx="48" cy="61" rx="6" ry="3" fill={HAZARD} transform="rotate(-20 48 61)" />
+      {/* arm holding a water bottle up */}
+      <path d="M20 32 Q10 24 12 12" stroke={SPUD_DARK} strokeWidth="5" strokeLinecap="round" fill="none" />
+      <rect x="6" y="0" width="9" height="15" rx="2.5" fill="none" stroke={HAZARD} strokeWidth="2" />
+      <rect x="8.5" y="-3" width="4" height="4" rx="1" fill={HAZARD} />
+      {/* other arm, relaxed on hip */}
+      <path d="M44 34 Q52 36 50 44" stroke={SPUD_DARK} strokeWidth="5" strokeLinecap="round" fill="none" />
+      {/* potato body */}
+      <ellipse cx="32" cy="34" rx="17" ry="21" fill={SPUD} stroke={SPUD_DARK} strokeWidth="1.5" />
+      <ellipse cx="22" cy="44" rx="2" ry="1.3" fill={SPUD_DARK} opacity="0.6" />
+      <ellipse cx="40" cy="40" rx="1.6" ry="1" fill={SPUD_DARK} opacity="0.6" />
+      <ellipse cx="30" cy="48" rx="1.4" ry="1" fill={SPUD_DARK} opacity="0.5" />
+      {/* headband */}
+      <path d="M17 24 Q32 16 47 24 L47 20 Q32 12 17 20 Z" fill={HAZARD} />
+      {/* content, closed-eyes smile — mid water break */}
+      <path d="M23 30 Q25.5 28 28 30" stroke={INK} strokeWidth="1.6" fill="none" strokeLinecap="round" />
+      <path d="M36 30 Q38.5 28 41 30" stroke={INK} strokeWidth="1.6" fill="none" strokeLinecap="round" />
+      <path d="M25 37 Q32 41 39 36" stroke={INK} strokeWidth="1.8" fill="none" strokeLinecap="round" />
     </svg>
   );
 }
@@ -1044,7 +1272,7 @@ function BottleFigure({ size = 72 }) {
 function ThankYou({ onDone, saveOk }) {
   return (
     <div className="px-5 pt-10 pb-28 flex flex-col items-center text-center">
-      <BottleFigure />
+      <PotatoWithBottle />
       <h2 className="mt-4 mb-2" style={{ fontFamily: DISPLAY_FONT, fontSize: 24, color: CHALK, textTransform: "uppercase" }}>Danke fürs Feedback</h2>
       {saveOk ? (
         <p style={{ fontFamily: BODY_FONT, fontSize: 14, color: CHALK_DIM, maxWidth: 280, marginBottom: 4 }}>
@@ -1139,11 +1367,12 @@ export default function App() {
   const [focus, setFocus] = useState({});
   const [surprise, setSurprise] = useState(false);
 
-  const [stage, setStage] = useState("setup"); // setup | active | cooldown | thanks
+  const [stage, setStage] = useState("setup"); // setup | preview | active | cooldown | thanks
   const [plan, setPlan] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [skips, setSkips] = useState([]);
   const [lastSessionSaveOk, setLastSessionSaveOk] = useState(true);
+  const [photoIndex, setPhotoIndex] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -1156,6 +1385,9 @@ export default function App() {
       if (!p.ok || !eq.ok || !s.ok) setStorageWarning(true);
       setLoaded(true);
     })();
+    // Load the exercise photo library in the background — never blocks the app,
+    // and ExerciseSketch quietly falls back to the drawn pictogram until/unless it's ready.
+    loadExercisePhotoIndex().then(setPhotoIndex);
   }, []);
 
   const saveProfile = async () => {
@@ -1192,8 +1424,31 @@ export default function App() {
     const res = await generateWorkout({ profile, equipment, duration, focus, surprise, history });
     setPlan(res.plan);
     setLoadingPlan(false);
-    setStage("active");
+    setStage("preview");
   };
+
+  const swapExercise = (idx) => {
+    if (!plan) return;
+    const have = new Set(equipment.filter(e => e.checked).map(e => e.id));
+    have.add("bodyweight");
+    const current = plan.exercises[idx];
+    const usedNames = new Set(plan.exercises.map(e => e.name));
+    let candidates = EXERCISE_DB.filter(ex => ex.category === current.category && ex.equipment.some(eq => have.has(eq)) && !usedNames.has(ex.name));
+    if (candidates.length === 0) {
+      candidates = EXERCISE_DB.filter(ex => ex.equipment.some(eq => have.has(eq)) && !usedNames.has(ex.name));
+    }
+    if (candidates.length === 0) return; // nothing left to swap to
+    const pick = candidates[Math.floor(Math.random() * candidates.length)];
+    const factor = plan.totalFactor || 1;
+    const scaled = { ...pick, equipment: equipmentLabel(pick.equipment) };
+    if (pick.mode === "reps") scaled.reps = Math.max(4, Math.round(pick.reps * factor));
+    else scaled.durationSeconds = Math.max(15, Math.round(pick.durationSeconds * factor));
+    const nextExercises = [...plan.exercises];
+    nextExercises[idx] = scaled;
+    setPlan({ ...plan, exercises: nextExercises });
+  };
+
+  const backToSetup = () => { setPlan(null); setStage("setup"); };
 
   const finishWorkout = () => setStage("cooldown");
   const recordSkip = (detail) => setSkips(s => [...s, detail]);
@@ -1266,13 +1521,16 @@ export default function App() {
       `}</style>
 
       {/* HEADER */}
-      <div className="px-5 pt-7 pb-4" style={{ borderBottom: `1.5px solid ${STEEL}`, background: `linear-gradient(180deg, ${PANEL} 0%, ${INK} 100%)` }}>
-        <h1 style={{ fontFamily: DISPLAY_FONT, fontSize: 28, color: CHALK, letterSpacing: 0.5, textTransform: "uppercase" }}>
-          Fitness For <span style={{ color: HAZARD }}>Casuals</span>
-        </h1>
-        <p style={{ fontFamily: MONO_FONT, fontSize: 11, color: CHALK_DIM, marginTop: 2, letterSpacing: 0.5 }}>
-          no schedule, no routine, just the workout you need and when you want it.
-        </p>
+      <div className="px-5 pt-7 pb-4 flex items-center gap-3" style={{ borderBottom: `1.5px solid ${STEEL}`, background: `linear-gradient(180deg, ${PANEL} 0%, ${INK} 100%)` }}>
+        <PotatoMascot size={48} />
+        <div>
+          <h1 style={{ fontFamily: DISPLAY_FONT, fontSize: 26, color: CHALK, letterSpacing: 0.5, textTransform: "uppercase" }}>
+            Coach <span style={{ color: HAZARD }}>Potato</span>
+          </h1>
+          <p style={{ fontFamily: MONO_FONT, fontSize: 11, color: CHALK_DIM, marginTop: 2, letterSpacing: 0.5 }}>
+            Training that fits your habits.
+          </p>
+        </div>
       </div>
 
       {storageWarning && (
@@ -1294,8 +1552,11 @@ export default function App() {
             onStart={startWorkout} loading={loadingPlan}
           />
         )}
+        {tab === "workout" && stage === "preview" && plan && (
+          <WorkoutPreview plan={plan} onSwap={swapExercise} onStart={() => setStage("active")} onBack={backToSetup} />
+        )}
         {tab === "workout" && stage === "active" && plan && (
-          <ActiveWorkout plan={plan} onFinish={finishWorkout} onExit={exitWorkout} onSkip={recordSkip} />
+          <ActiveWorkout plan={plan} onFinish={finishWorkout} onExit={exitWorkout} onSkip={recordSkip} photoIndex={photoIndex} />
         )}
         {tab === "workout" && stage === "cooldown" && plan && (
           <Cooldown plan={plan} onSubmit={submitCooldown} />
@@ -1323,3 +1584,4 @@ export default function App() {
     </div>
   );
 }
+
