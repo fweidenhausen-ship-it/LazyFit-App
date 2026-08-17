@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   User, Dumbbell, Play, Pause, History, ChevronRight, ChevronLeft, Check, X,
-  Plus, Minus, Sparkles, Clock, Flame, SkipForward, RotateCcw, ArrowLeft, Mic, GlassWater, Heart
+  Plus, Minus, Sparkles, Clock, Flame, SkipForward, RotateCcw, ArrowLeft, Mic, GlassWater, Heart,
+  Volume2, VolumeX, Info
 } from "lucide-react";
 
 /* ---------------------------------------------------------
@@ -176,6 +177,50 @@ const EXERCISE_EN_NAMES = {
   "Schulterkreisen": "Shoulder Circles",
   "Katze-Kuh": "Cat Cow",
   "Band Schulteröffner": "Band Shoulder Stretch",
+};
+
+// Fuller how-to text per exercise, shown in the info popup — useful whenever the
+// photo/sketch doesn't quite show what an unfamiliar exercise name means.
+const EXERCISE_INSTRUCTIONS = {
+  "Liegestütze": "Stütz dich in Bauchlage auf Hände (schulterbreit) und Zehenspitzen ab. Senke den Körper als gerade Linie ab, bis die Brust fast den Boden berührt, dann drücke dich wieder hoch.",
+  "Diamant-Liegestütze": "Wie ein normaler Liegestütz, aber Daumen und Zeigefinger bilden unter der Brust eine Raute. Belastet Trizeps und inneren Brustmuskel stärker.",
+  "Kurzhantel Bankdrücken": "Auf dem Rücken liegend je eine Kurzhantel auf Brusthöhe halten. Nach oben drücken, bis die Arme fast gestreckt sind, dann kontrolliert absenken.",
+  "Langhantel Bankdrücken": "Auf der Bank liegend die Langhantel schulterbreit greifen, von der Ablage nehmen, zur Brust absenken und wieder hochdrücken.",
+  "Schulterdrücken Kurzhantel": "Im Stehen oder Sitzen die Kurzhanteln auf Schulterhöhe halten und über den Kopf drücken, bis die Arme fast gestreckt sind.",
+  "Kabelzug Brustpresse": "Am Kabelzug auf Brusthöhe stehend die Griffe nach vorne drücken, bis die Arme fast gestreckt sind, dann langsam zurückführen.",
+  "Dips": "Auf zwei parallelen Griffen/Kanten abstützen, Körper langsam absenken bis die Oberarme etwa waagerecht sind, dann wieder hochdrücken.",
+  "Pike Push-ups": "In der umgekehrten V-Position (Po hoch) die Arme beugen, bis sich der Kopf dem Boden nähert, dann wieder hochdrücken. Trainiert vor allem die Schultern.",
+  "Klimmzüge": "An einer Stange im Obergriff hängen, den Körper hochziehen bis das Kinn über der Stange ist, dann kontrolliert wieder ablassen.",
+  "Australian Pull-ups": "Unter einer niedrigen Stange liegen, Körper gerade halten und die Brust zur Stange ziehen, dann wieder ablassen.",
+  "Band Rudern": "Band vor dem Körper befestigen, Griffe fassen und zum Bauch ziehen, Ellbogen dicht am Körper vorbeiführen.",
+  "Kabelzug Rudern": "Sitzend am Kabelzug den Griff zum Bauch ziehen, Rücken gerade halten, Schulterblätter am Ende zusammenziehen.",
+  "Langhantel Rudern": "Oberkörper leicht vorgebeugt die Langhantel vom Boden zum Bauch ziehen, dann kontrolliert absenken.",
+  "Bizeps Curls": "Kurzhanteln seitlich am Körper halten, Unterarme beugen und die Hanteln zu den Schultern führen, dann langsam absenken.",
+  "Kettlebell Rudern": "Mit einer Hand auf einer Bank abgestützt die Kettlebell mit der anderen Hand zum Bauch ziehen.",
+  "Kniebeugen": "Füße schulterbreit, in die Hocke gehen als würdest du dich auf einen Stuhl setzen, Knie folgen den Zehen, dann wieder aufrichten.",
+  "Langhantel Kniebeugen": "Langhantel auf dem oberen Rücken, in die Hocke gehen bis die Oberschenkel etwa parallel zum Boden sind, dann aufrichten.",
+  "Kettlebell Goblet Squat": "Kettlebell mit beiden Händen vor der Brust halten, in die Hocke gehen, Ellbogen führen zwischen die Knie.",
+  "Ausfallschritte": "Einen großen Schritt nach vorne machen, beide Knie beugen bis das hintere fast den Boden berührt, dann zurück in den Stand drücken.",
+  "Kurzhantel Ausfallschritte": "Wie normale Ausfallschritte, zusätzlich in jeder Hand eine Kurzhantel für mehr Widerstand.",
+  "Box Step-ups": "Mit einem Fuß komplett auf eine Box/Stufe steigen, hochdrücken bis beide Beine oben stehen, dann kontrolliert zurück.",
+  "Wadenheben": "Im Stehen auf die Zehenspitzen hochdrücken, kurz halten, dann langsam absenken.",
+  "Beinpresse Maschine": "Auf der Maschine sitzend die Fußplatte mit den Beinen wegdrücken, Knie nicht ganz durchstrecken, dann kontrolliert zurückführen.",
+  "Plank": "Unterarmstütz mit geradem Körper von Kopf bis Fersen, Bauch anspannen und die Position halten.",
+  "Seitlicher Unterarmstütz": "Seitlich auf einem Unterarm abstützen, Hüfte anheben, Körper bildet eine gerade Linie, Position halten.",
+  "Russian Twists": "Im Sitzen leicht nach hinten lehnen, Füße evtl. leicht anheben, Oberkörper abwechselnd nach links und rechts drehen.",
+  "Crunches": "Auf dem Rücken liegend, Knie angewinkelt, die Schulterblätter vom Boden abheben, dann wieder ablegen.",
+  "Beinheben hängend": "An einer Stange hängen und die gestreckten oder angewinkelten Beine kontrolliert nach oben ziehen, dann absenken.",
+  "Mountain Climbers": "In der Liegestützposition abwechselnd die Knie zügig zur Brust ziehen, wie ein Laufen in der Waagerechten.",
+  "Kettlebell Swings": "Kettlebell mit beiden Händen vor dem Körper halten, aus der Hüfte schwingen bis sie etwa Schulterhöhe erreicht, dann zurückschwingen lassen.",
+  "Seilspringen": "Mit lockeren Handgelenken das Seil unter den Füßen durchschwingen und im Rhythmus überspringen.",
+  "Burpees": "Aus dem Stand in die Liegestützposition fallen, einen Liegestütz machen, wieder aufspringen und in die Luft springen.",
+  "Jumping Jacks": "Aus dem Stand gleichzeitig Beine seitlich öffnen und Arme über den Kopf führen, dann wieder zurückspringen.",
+  "Box Jumps": "Aus dem Stand beidbeinig auf eine Box springen, weich landen, dann herunter steigen (nicht springen).",
+  "Hochknie-Lauf": "Auf der Stelle laufen und dabei die Knie abwechselnd zügig bis zur Hüfte hochziehen.",
+  "Dehnung Hüftbeuger": "Im Ausfallschritt-Knien das Becken leicht nach vorne schieben, bis eine Dehnung in der vorderen Hüfte des hinteren Beins spürbar ist.",
+  "Schulterkreisen": "Arme locker hängen lassen und große, langsame Kreise mit den Schultern in beide Richtungen machen.",
+  "Katze-Kuh": "Im Vierfüßlerstand abwechselnd den Rücken rund machen (Kinn zur Brust) und durchhängen lassen (Blick nach oben).",
+  "Band Schulteröffner": "Band mit beiden Händen breit greifen und von vorne über den Kopf nach hinten führen, dann zurück.",
 };
 
 // Public-domain exercise photo library (Unlicense — free for any use, incl. commercial).
@@ -936,6 +981,7 @@ function WorkoutSetupTab({ equipment, duration, setDuration, focus, setFocus, su
    WORKOUT PREVIEW — shown after generation, before the workout starts
 --------------------------------------------------------- */
 function WorkoutPreview({ plan, onSwap, onStart, onBack }) {
+  const [infoEx, setInfoEx] = useState(null);
   return (
     <div className="px-5 pt-6 pb-28">
       <SectionLabel>Das kommt jetzt</SectionLabel>
@@ -944,12 +990,17 @@ function WorkoutPreview({ plan, onSwap, onStart, onBack }) {
       <div className="flex flex-col gap-2 mb-6">
         {plan.exercises.map((ex, i) => (
           <div key={i} className="p-3 flex items-center justify-between" style={{ borderRadius: 12, border: `1.5px solid ${STEEL}`, background: PANEL2 }}>
-            <div>
-              <div style={{ fontFamily: BODY_FONT, fontSize: 14, color: CHALK }}>{ex.name}</div>
-              <div style={{ fontFamily: MONO_FONT, fontSize: 12, color: CHALK_DIM }}>
-                {ex.mode === "timed" ? `${ex.sets}× ${ex.durationSeconds}s` : `${ex.sets}× ${ex.reps}`} · {CAT_MUSCLES[resolveIconKey(ex.name, ex.category)] || CAT_MUSCLES[ex.category]}
+            <button onClick={() => setInfoEx(ex)} className="flex items-center gap-1.5 text-left flex-1 min-w-0">
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <div style={{ fontFamily: BODY_FONT, fontSize: 14, color: CHALK }}>{ex.name}</div>
+                  <Info size={13} color={HAZARD} style={{ flexShrink: 0 }} />
+                </div>
+                <div style={{ fontFamily: MONO_FONT, fontSize: 12, color: CHALK_DIM }}>
+                  {ex.mode === "timed" ? `${ex.sets}× ${ex.durationSeconds}s` : `${ex.sets}× ${ex.reps}`} · {CAT_MUSCLES[resolveIconKey(ex.name, ex.category)] || CAT_MUSCLES[ex.category]}
+                </div>
               </div>
-            </div>
+            </button>
             <button
               onClick={() => onSwap(i)}
               aria-label="Übung tauschen"
@@ -968,6 +1019,8 @@ function WorkoutPreview({ plan, onSwap, onStart, onBack }) {
       <button onClick={onBack} className="w-full mt-3 py-2 text-center" style={{ fontFamily: BODY_FONT, fontSize: 13, color: CHALK_DIM }}>
         Zurück zur Auswahl
       </button>
+
+      {infoEx && <InfoModal ex={infoEx} onClose={() => setInfoEx(null)} />}
     </div>
   );
 }
@@ -975,13 +1028,67 @@ function WorkoutPreview({ plan, onSwap, onStart, onBack }) {
 /* ---------------------------------------------------------
    ACTIVE WORKOUT
 --------------------------------------------------------- */
-function RestTimer({ seconds, onDone, onSkip }) {
+
+// Lightweight beep generator — no audio files needed. Best-effort: silently
+// does nothing if the Web Audio API is unavailable or blocked.
+const SOUND_STORAGE_KEY = "lazyfit:sound_on";
+function loadSoundPref() {
+  try {
+    const v = window.localStorage.getItem(SOUND_STORAGE_KEY);
+    return v === null ? true : v === "1";
+  } catch { return true; }
+}
+function storeSoundPref(on) {
+  try { window.localStorage.setItem(SOUND_STORAGE_KEY, on ? "1" : "0"); } catch { /* best effort */ }
+}
+
+let sharedAudioCtx = null;
+function getAudioCtx() {
+  try {
+    if (!sharedAudioCtx) sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (sharedAudioCtx.state === "suspended") sharedAudioCtx.resume().catch(() => {});
+    return sharedAudioCtx;
+  } catch {
+    return null;
+  }
+}
+function playTone({ freq = 880, duration = 0.15, delay = 0, volume = 0.16 } = {}) {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  try {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    const start = ctx.currentTime + delay;
+    gain.gain.setValueAtTime(volume, start);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    osc.start(start);
+    osc.stop(start + duration + 0.02);
+  } catch { /* best effort */ }
+}
+function playRestEndChime() {
+  playTone({ freq: 660, duration: 0.12, delay: 0 });
+  playTone({ freq: 880, duration: 0.2, delay: 0.14 });
+}
+function playSetEndChime() {
+  playTone({ freq: 520, duration: 0.16, delay: 0 });
+}
+
+function RestTimer({ seconds, onDone, onSkip, soundOn }) {
   const [left, setLeft] = useState(seconds);
   useEffect(() => {
     setLeft(seconds);
     const id = setInterval(() => {
       setLeft(l => {
-        if (l <= 1) { clearInterval(id); onDone(); return 0; }
+        if (l <= 1) {
+          clearInterval(id);
+          if (soundOn) playRestEndChime();
+          onDone();
+          return 0;
+        }
         return l - 1;
       });
     }, 1000);
@@ -1000,15 +1107,15 @@ function RestTimer({ seconds, onDone, onSkip }) {
   );
 }
 
-function TimedExercise({ ex, onSetDone }) {
+function TimedExercise({ ex, onSetDone, soundOn }) {
   const [running, setRunning] = useState(false);
   const [left, setLeft] = useState(ex.durationSeconds || 30);
   useEffect(() => {
     if (!running) return;
-    if (left <= 0) { setRunning(false); onSetDone(); return; }
+    if (left <= 0) { setRunning(false); if (soundOn) playSetEndChime(); onSetDone(); return; }
     const id = setTimeout(() => setLeft(l => l - 1), 1000);
     return () => clearTimeout(id);
-  }, [running, left, onSetDone]);
+  }, [running, left, onSetDone, soundOn]);
 
   return (
     <div className="flex flex-col items-center py-6">
@@ -1063,6 +1170,22 @@ function SkipModal({ exerciseName, onCancel, onConfirm }) {
   );
 }
 
+function InfoModal({ ex, onClose }) {
+  const text = EXERCISE_INSTRUCTIONS[ex.name] || ex.cue;
+  return (
+    <div className="fixed inset-0 z-20 flex items-end sm:items-center justify-center" style={{ background: "rgba(0,0,0,0.55)" }} onClick={onClose}>
+      <div className="w-full mx-auto p-5" style={{ maxWidth: 480, background: PANEL, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderTop: `1.5px solid ${STEEL}` }} onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-3">
+          <div style={{ fontFamily: DISPLAY_FONT, fontSize: 18, color: CHALK, textTransform: "uppercase" }}>{ex.name}</div>
+          <button onClick={onClose} style={{ color: CHALK_DIM }}><X size={20} /></button>
+        </div>
+        <p style={{ fontFamily: BODY_FONT, fontSize: 14, color: CHALK, lineHeight: 1.5, marginBottom: 16 }}>{text}</p>
+        <button onClick={onClose} className="w-full py-3" style={{ borderRadius: 12, background: HAZARD, color: INK, fontFamily: DISPLAY_FONT, textTransform: "uppercase", letterSpacing: 1, fontSize: 14 }}>Verstanden</button>
+      </div>
+    </div>
+  );
+}
+
 // Keeps the phone screen from dimming/locking while a workout is running.
 // Best-effort: silently does nothing on browsers that don't support it (e.g. older iOS).
 function useWakeLock(active) {
@@ -1103,10 +1226,14 @@ function ActiveWorkout({ plan, onFinish, onExit, onSkip, photoIndex }) {
   const [setNum, setSetNum] = useState(1);
   const [phase, setPhase] = useState("exercise"); // exercise | rest
   const [showSkip, setShowSkip] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
+  const [soundOn, setSoundOn] = useState(loadSoundPref);
   const exercises = plan.exercises;
   const ex = exercises[exIdx];
   const isLast = exIdx === exercises.length - 1;
   const isLastSet = setNum >= ex.sets;
+
+  const toggleSound = () => setSoundOn(v => { storeSoundPref(!v); return !v; });
 
   const advance = useCallback(() => {
     if (!isLastSet) {
@@ -1143,18 +1270,26 @@ function ActiveWorkout({ plan, onFinish, onExit, onSkip, photoIndex }) {
         <div className="flex items-center gap-2">
           <Tally n={exIdx + (phase === "rest" && isLastSet ? 1 : 0)} />
           <span style={{ fontFamily: MONO_FONT, fontSize: 12, color: CHALK_DIM }}>{exIdx + 1}/{exercises.length}</span>
+          <button onClick={toggleSound} aria-label={soundOn ? "Ton aus" : "Ton an"} style={{ color: CHALK_DIM, marginLeft: 4 }}>
+            {soundOn ? <Volume2 size={17} /> : <VolumeX size={17} />}
+          </button>
         </div>
       </div>
 
       {phase === "exercise" && (
         <>
           <ExerciseSketch cat={ex.category} name={ex.name} photoIndex={photoIndex} />
-          <h2 className="text-center mb-1" style={{ fontFamily: DISPLAY_FONT, fontSize: 26, color: CHALK, textTransform: "uppercase" }}>{ex.name}</h2>
+          <div className="flex items-center justify-center gap-1.5 mb-1">
+            <h2 className="text-center" style={{ fontFamily: DISPLAY_FONT, fontSize: 26, color: CHALK, textTransform: "uppercase" }}>{ex.name}</h2>
+            <button onClick={() => setShowInfo(true)} aria-label="Wie geht diese Übung?" style={{ color: HAZARD }}>
+              <Info size={18} />
+            </button>
+          </div>
           <p className="text-center mb-4" style={{ fontFamily: BODY_FONT, fontSize: 13, color: HAZARD }}>{ex.equipment}</p>
           <p className="text-center mb-2 px-4" style={{ fontFamily: BODY_FONT, fontSize: 14, color: CHALK_DIM, fontStyle: "italic" }}>{ex.cue}</p>
 
           {ex.mode === "timed"
-            ? <TimedExercise ex={ex} onSetDone={advance} />
+            ? <TimedExercise ex={ex} onSetDone={advance} soundOn={soundOn} />
             : <RepsExercise ex={ex} setNum={setNum} onSetDone={advance} />}
 
           <div className="flex justify-center mt-2">
@@ -1170,6 +1305,7 @@ function ActiveWorkout({ plan, onFinish, onExit, onSkip, photoIndex }) {
           seconds={ex.restSeconds || 45}
           onDone={handleRestDone}
           onSkip={handleRestDone}
+          soundOn={soundOn}
         />
       )}
 
@@ -1180,6 +1316,7 @@ function ActiveWorkout({ plan, onFinish, onExit, onSkip, photoIndex }) {
       )}
 
       {showSkip && <SkipModal exerciseName={ex.name} onCancel={() => setShowSkip(false)} onConfirm={confirmSkip} />}
+      {showInfo && <InfoModal ex={ex} onClose={() => setShowInfo(false)} />}
     </div>
   );
 }
